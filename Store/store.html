@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Store — Domè Studios</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .product-grid{display:grid; gap:18px}
+    @media(min-width:760px){.product-grid{grid-template-columns:1fr 1fr}}
+    .price-tag{font-weight:800; font-size:18px}
+    .cart-sidebar{position:fixed; top:0; right:-400px; width:360px; height:100%; background:#121214; color:#eaeaea; box-shadow:-4px 0 20px rgba(0,0,0,.3); padding:20px; transition:right .3s; overflow-y:auto; z-index:999}
+    .cart-sidebar.open{right:0}
+    .cart-item{display:flex; justify-content:space-between; margin-bottom:12px; border-bottom:1px solid #2a2a2e; padding-bottom:6px}
+    .cart-total{font-weight:800; margin-top:12px}
+    .btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:10px 14px; border-radius:12px; border:none; cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,#79ffa8,#2de2ff); color:#0b0b0c; font-weight:800}
+    .btn-ghost{background:#151518; color:#eaeaea; border:1px solid #2a2a2e}
+    .store-toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; margin-bottom:12px}
+    .search{flex:1; min-width:220px}
+    .badge{font-size:11px; padding:4px 8px; border:1px solid #2a2a2e; border-radius:999px; opacity:.9}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><div class="logo-badge">D</div>Domè Studios</div>
+    <nav class="nav">
+      <a href="index.html">Accueil</a>
+      <a href="store.html">Store</a>
+      <a href="about.html">À propos</a>
+      <a href="faq.html">FAQ</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <section class="section">
+    <div class="store-toolbar">
+      <h1 class="cart">🛒 Store</h1>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap">
+        <input class="search" id="search" placeholder="Rechercher un produit…" />
+        <select id="filter" class="badge">
+          <option value="">Tous</option>
+          <option value="template">Templates</option>
+          <option value="ebook">eBooks</option>
+        </select>
+        <a class="btn btn-ghost" href="contact.html">Réclamations / Support</a>
+      </div>
+    </div>
+
+    <div id="products-grid" class="product-grid"></div>
+    <div id="empty" class="card center" style="display:none"><p class="muted">Aucun produit pour le moment.</p></div>
+  </section>
+
+  <footer class="footer">
+    <div class="muted">© <span id="year"></span> Domè Studios</div>
+  </footer>
+</div>
+
+<!-- Panier -->
+<div id="cart-sidebar" class="cart-sidebar">
+  <h2>Votre panier</h2>
+  <div id="cart-items"></div>
+  <div class="cart-total">Total: <span id="cart-total">0</span> FCFA</div>
+  <form name="commande" method="POST" data-netlify="true" id="form-checkout">
+    <input type="hidden" name="form-name" value="commande" />
+    <input type="hidden" name="Panier" id="cart-data" />
+    <div class="row">
+      <label>Nom complet</label>
+      <input name="Nom" placeholder="Votre nom" required />
+    </div>
+    <div class="row">
+      <label>E-mail</label>
+      <input type="email" name="Email" placeholder="vous@exemple.com" required />
+    </div>
+    <div style="margin-top:12px;">
+      <button class="btn btn-primary" type="submit">Procéder au paiement</button>
+      <button type="button" class="btn btn-ghost" id="close-cart">Fermer</button>
+    </div>
+  </form>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyC8FfqTeGIKLC1nJtfQH8suODFdH0kXn_E",
+  authDomain: "domestudios-58fa7.firebaseapp.com",
+  projectId: "domestudios-58fa7",
+  storageBucket: "domestudios-58fa7.firebasestorage.app",
+  messagingSenderId: "616147386743",
+  appId: "1:616147386743:web:c940897c0f24aea2012172",
+  measurementId: "G-5JFZJ8TC33"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const productsCol = collection(db, "products");
+
+let PRODUCTS = [];
+let CART = [];
+
+function formatPrice(x){ return x.toLocaleString() + ' FCFA'; }
+
+function renderProducts(list=PRODUCTS){
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML='';
+  if(!list.length){
+    document.getElementById('empty').style.display='block';
+    return;
+  }
+  document.getElementById('empty').style.display='none';
+  list.forEach(p=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`
+      <h3>${p.title}</h3>
+      <p>${p.type}</p>
+      <p>${p.desc || ''}</p>
+      <p class="price-tag">${formatPrice(p.price)}</p>
+      <button class="btn btn-primary" data-id="${p.id}">Ajouter au panier</button>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function renderCart(){
+  const itemsDiv = document.getElementById('cart-items');
+  itemsDiv.innerHTML='';
+  let total=0;
+  CART.forEach(item=>{
+    const div=document.createElement('div');
+    div.className='cart-item';
+    div.innerHTML=`<span>${item.title} x ${item.qty}</span><span>${formatPrice(item.price*item.qty)}</span>`;
+    itemsDiv.appendChild(div);
+    total+=item.price*item.qty;
+  });
+  document.getElementById('cart-total').textContent = total;
+  document.getElementById('cart-data').value = CART.map(i=>`${i.title} x ${i.qty} = ${i.price*i.qty}`).join('; ');
+}
+
+// Ajouter au panier
+document.addEventListener('click', e=>{
+  if(e.target.dataset.id){
+    const id = e.target.dataset.id;
+    const prod = PRODUCTS.find(p=>p.id===id);
+    const exist = CART.find(i=>i.id===id);
+    if(exist) exist.qty++;
+    else CART.push({...prod, qty:1});
+    renderCart();
+    document.getElementById('cart-sidebar').classList.add('open');
+  }
+});
+
+// Fermer panier
+document.getElementById('close-cart').addEventListener('click', ()=>{
+  document.getElementById('cart-sidebar').classList.remove('open');
+});
+
+// Filtre et recherche
+const search = document.getElementById('search');
+const filter = document.getElementById('filter');
+
+function applyFilters(){
+  const q = search.value.trim().toLowerCase();
+  const t = filter.value;
+  const filtered = PRODUCTS.filter(p=>{
+    const okType = !t || p.type===t;
+    const okQuery = !q || p.title.toLowerCase().includes(q) || (p.desc||'').toLowerCase().includes(q);
+    return okType && okQuery;
+  });
+  renderProducts(filtered);
+}
+
+search.addEventListener('input', applyFilters);
+filter.addEventListener('change', applyFilters);
+
+// Charger produits Firebase
+async function loadProducts(){
+  const snapshot = await getDocs(productsCol);
+  PRODUCTS = snapshot.docs.map(doc=>({id: doc.id, ...doc.data()}));
+  renderProducts();
+}
+
+loadProducts();
+
+// Paiement
+const form = document.getElementById('form-checkout');
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  if (CART.length === 0) {
+    alert("Votre panier est vide.");
+    return;
+  }
+
+  // Récupérer le panier et infos client
+  const panier = CART.map(i => ({ title: i.title, price: i.price, qty: i.qty }));
+  const name = form.querySelector('[name=Nom]').value;
+  const email = form.querySelector('[name=Email]').value;
+  const amount = CART.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const description = panier.map(i => `${i.title} x${i.qty}`).join(', ');
+
+  // Appel à Netlify Function
+  const res = await fetch('/.netlify/functions/createPayment', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, email, panier, amount, description })
+  });
+
+  const data = await res.json();
+  if(data.redirectUrl){
+    window.location.href = data.redirectUrl;
+  } else {
+    alert('Erreur paiement: ' + JSON.stringify(data.error || data.details));
+  }
+});
+
+// Année footer
+document.getElementById('year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
