@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Merci — Domè Studios</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">
+        <div class="logo-badge">DS</div>
+        <div>Domè Studios</div>
+      </div>
+      <nav class="nav">
+        <a href="index.html">Accueil</a>
+        <a href="store.html">Store</a>
+        <a href="about.html">À propos</a>
+        <a href="contact.html">Contact</a>
+      </nav>
+    </header>
+
+    <section class="section card center">
+      <h1>🎉 Merci !</h1>
+      <p class="muted">Votre message/commande a bien été envoyé. Vous recevrez une réponse sous 24h.</p>
+      <div style="margin-top:12px">
+        <a class="btn" href="index.html">⬅ Retour à l’accueil</a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="muted">© <span id="year"></span> Domè Studios</div>
+    </footer>
+  </div>
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

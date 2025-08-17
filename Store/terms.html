@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Conditions d’utilisation — Domè Studios</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <div class="logo-badge">D</div>
+      <div>Domè Studios</div>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Accueil</a>
+      <a href="about.html">À propos</a>
+      <a href="store.html">Store</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <section class="section card">
+    <span class="pill">Conditions</span>
+    <h1>Conditions d’utilisation</h1>
+
+    <h3>1. Produits</h3>
+    <p class="muted">Templates Notion, eBooks et autres contenus numériques. Livraison par lien de téléchargement ou partage Notion.</p>
+
+    <h3>2. Prix & paiement</h3>
+    <p class="muted">Prix indiqués en FCFA. Paiement par mobile money (ou autres moyens listés). La commande est validée après réception du paiement.</p>
+
+    <h3>3. Droit d’usage</h3>
+    <p class="muted">Usage personnel ou interne à votre activité. Revente / redistribution interdite sans accord écrit.</p>
+
+    <h3>4. Remboursement</h3>
+    <p class="muted">Garantie 7 jours « satisfait ou remboursé » sur nos offres principales, sauf mention contraire.</p>
+
+    <h3>5. Support</h3>
+    <p class="muted">Assistance par <a href="contact.html">Contact</a>. Mises à jour mineures incluses pour les templates.</p>
+
+    <h3>6. Responsabilité</h3>
+    <p class="muted">Nos contenus sont fournis « tels quels ». Nous ne garantissons pas un résultat commercial spécifique.</p>
+
+    <h3>7. Modifications</h3>
+    <p class="muted">Nous pouvons mettre à jour ces conditions. La date de mise à jour est affichée ci-dessous.</p>
+
+    <p class="small muted">Dernière mise à jour : <span id="updated"></span></p>
+  </section>
+
+  <footer class="footer">
+    <div class="muted">© <span id="year"></span> Domè Studios</div>
+  </footer>
+</div>
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+  document.getElementById('updated').textContent = new Date().toLocaleDateString('fr-FR');
+</script>
+</body>
+</html>
