@@ -11,7 +11,6 @@ exports.handler = async (event) => {
     // Clés PayDunya depuis Netlify (assurez-vous que MASTER_KEY est séparé)
     const PUBLIC_KEY = process.env.PAYDUNYA_PUBLIC_KEY;
     const PRIVATE_KEY = process.env.PAYDUNYA_PRIVATE_KEY;
-    const MASTER_KEY = process.env.PAYDUNYA_MASTER_KEY;
     const TOKEN = process.env.PAYDUNYA_TOKEN;
 
     const response = await fetch("https://app.paydunya.com/sandbox-api/v1/checkout-invoice/create", {
@@ -20,7 +19,6 @@ exports.handler = async (event) => {
         "Content-Type": "application/json",
         "PAYDUNYA-PUBLIC-KEY": PUBLIC_KEY,
         "PAYDUNYA-PRIVATE-KEY": PRIVATE_KEY,
-        "PAYDUNYA-MASTER-KEY": MASTER_KEY,
         "PAYDUNYA-TOKEN": TOKEN,
       },
       body: JSON.stringify({
@@ -51,3 +49,4 @@ exports.handler = async (event) => {
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
   }
 };
+
