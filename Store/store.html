@@ -204,12 +204,33 @@ form.addEventListener('submit', async (e) => {
   const description = panier.map(i => `${i.title} x${i.qty}`).join(', ');
 
   // Appel à Netlify Function
-  const res = await fetch('/.netlify/functions/createPayment', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, email, panier, amount, description })
-  });
+  async function createPayment(amount) {
+  try {
+    const response = await fetch("/.netlify/functions/createPayment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: amount,
+        name: "Commande Domè Store",
+      }),
+    });
 
+    const data = await response.json();
+    console.log("Réponse reçue du backend :", data);
+
+    if (data && data.response_code === "00") {
+      // Succès → on redirige vers la page de paiement PayDunya
+      window.location.href = data.response_text.checkout_url;
+    } else {
+      alert("Erreur paiement: " + (data.response_text || JSON.stringify(data)));
+    }
+  } catch (err) {
+    console.error("Erreur côté frontend :", err);
+    alert("Impossible de créer le paiement : " + err.message);
+  }
+}
   const data = await res.json();
   if(data.redirectUrl){
     window.location.href = data.redirectUrl;
