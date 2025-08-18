@@ -201,13 +201,11 @@ form.addEventListener('submit', async (e) => {
     });
 
     const data = await res.json();
-    console.log("Réponse reçue :", data);
-
-    if(data && data.redirectUrl){
-      window.location.href = data.redirectUrl;
-    } else {
-      alert("Erreur paiement: " + JSON.stringify(data.error || data));
-    }
+if(data && data.response_code === "00" && data.response_text){
+  window.location.href = data.response_text; // redirection vers PayDunya
+} else {
+  alert("Erreur paiement: " + JSON.stringify(data.error || data));
+}
   } catch(err){
     console.error("Erreur côté frontend :", err);
     alert("Impossible de créer le paiement : " + err.message);
