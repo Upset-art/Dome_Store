@@ -141,7 +141,6 @@ function renderCart(){
   document.getElementById('cart-data').value = CART.map(i=>`${i.title} x ${i.qty} = ${i.price*i.qty}`).join('; ');
 }
 
-// Ajouter au panier
 document.addEventListener('click', e=>{
   if(e.target.dataset.id){
     const id = e.target.dataset.id;
@@ -154,15 +153,12 @@ document.addEventListener('click', e=>{
   }
 });
 
-// Fermer panier
 document.getElementById('close-cart').addEventListener('click', ()=>{
   document.getElementById('cart-sidebar').classList.remove('open');
 });
 
-// Filtre et recherche
 const search = document.getElementById('search');
 const filter = document.getElementById('filter');
-
 function applyFilters(){
   const q = search.value.trim().toLowerCase();
   const t = filter.value;
@@ -173,73 +169,52 @@ function applyFilters(){
   });
   renderProducts(filtered);
 }
-
 search.addEventListener('input', applyFilters);
 filter.addEventListener('change', applyFilters);
 
-// Charger produits Firebase
 async function loadProducts(){
   const snapshot = await getDocs(productsCol);
   PRODUCTS = snapshot.docs.map(doc=>({id: doc.id, ...doc.data()}));
   renderProducts();
 }
-
 loadProducts();
 
-// Paiement
+// ===== PAIEMENT =====
 const form = document.getElementById('form-checkout');
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
-  if (CART.length === 0) {
+  if(CART.length === 0){
     alert("Votre panier est vide.");
     return;
   }
 
-  // Récupérer le panier et infos client
   const panier = CART.map(i => ({ title: i.title, price: i.price, qty: i.qty }));
-  const name = form.querySelector('[name=Nom]').value;
-  const email = form.querySelector('[name=Email]').value;
   const amount = CART.reduce((sum, i) => sum + i.price * i.qty, 0);
   const description = panier.map(i => `${i.title} x${i.qty}`).join(', ');
 
-  // Appel à Netlify Function
-  async function createPayment(amount) {
   try {
-    const response = await fetch("/.netlify/functions/createPayment", {
+    const res = await fetch("/.netlify/functions/createPayment", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        amount: amount,
-        name: "Commande Domè Store",
-      }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount, description, callback_url: "https://domestore.netlify.app/merci" })
     });
 
-    const data = await response.json();
-    console.log("Réponse reçue du backend :", data);
+    const data = await res.json();
+    console.log("Réponse reçue :", data);
 
-    if (data && data.response_code === "00") {
-      // Succès → on redirige vers la page de paiement PayDunya
-      window.location.href = data.response_text.checkout_url;
+    if(data && data.redirectUrl){
+      window.location.href = data.redirectUrl;
     } else {
-      alert("Erreur paiement: " + (data.response_text || JSON.stringify(data)));
+      alert("Erreur paiement: " + JSON.stringify(data.error || data));
     }
-  } catch (err) {
+  } catch(err){
     console.error("Erreur côté frontend :", err);
     alert("Impossible de créer le paiement : " + err.message);
   }
-}
-  const data = await res.json();
-  if(data.redirectUrl){
-    window.location.href = data.redirectUrl;
-  } else {
-    alert('Erreur paiement: ' + JSON.stringify(data.error || data.details));
-  }
 });
 
-// Année footer
+// Footer
 document.getElementById('year').textContent = new Date().getFullYear();
 </script>
 </body>
